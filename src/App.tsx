@@ -46,8 +46,10 @@ import {
   MessageSquare,
   Briefcase,
   Camera,
-  Laptop
+  Laptop,
+  Settings
 } from 'lucide-react';
+import UserManagement from './components/UserManagement';
 
 interface Lead {
   id: string;
@@ -124,6 +126,7 @@ function App() {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'basico' | 'intermedio' | 'avanzado' | null>(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
 
   
 
@@ -684,13 +687,22 @@ function App() {
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">Panel de Control - MelxAgency</h1>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Cerrar Sesión</span>
-              </button>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowUserManagement(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#0e368d] text-white rounded-lg hover:bg-[#0c2d75] transition-colors"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Administrar Usuarios</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1182,6 +1194,11 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* User Management Modal */}
+        {showUserManagement && (
+          <UserManagement onClose={() => setShowUserManagement(false)} />
+        )}
 
         {/* Modales de administración */}
         {showBlogModal && (
