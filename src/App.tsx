@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import type { Session } from "@supabase/supabase-js";
 
 
@@ -18,6 +19,7 @@ import {
   Phone,
   Mail,
   MapPin,
+  Shield,
   Clock,
   Facebook,
   Instagram,
@@ -49,7 +51,11 @@ import {
   Laptop,
   Settings
 } from 'lucide-react';
-import UserManagement from './components/UserManagement';
+import AuthProvider from './components/AuthProvider';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminPanel from './components/AdminPanel';
+import LoginModal from './components/LoginModal';
+import { supabase } from './supabaseClient';
 
 interface Lead {
   id: string;
@@ -116,6 +122,26 @@ interface TeamMember {
 }
 
 function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -143,8 +169,6 @@ function App() {
   });
 
   // Estados para datos
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [planRequests, setPlanRequests] = useState<PlanRequest[]>([]);
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -1425,44 +1449,6 @@ function App() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Biografía</label>
-                    <textarea
-                      value={teamForm.bio}
-                      onChange={(e) => setTeamForm({...teamForm, bio: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0e368d] focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowTeamModal(false);
-                        setEditingTeam(null);
-                        setTeamForm({ firstName: '', lastName: '', specialty: '', photo: '', bio: '' });
-                        setImageFile(null);
-                      }}
-                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={!teamForm.firstName || !teamForm.specialty || (!imageFile && !editingTeam)}
-                      className="px-4 py-2 bg-[#0e368d] text-white rounded-lg hover:bg-[#0c2d75] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {editingTeam ? 'Actualizar' : 'Crear'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -2488,78 +2474,10 @@ function App() {
       </footer>
 
       {/* Modal de Login */}
-      {isLoginOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#0e368d] to-[#942ace] flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">Acceso Administrativo</h2>
-              <p className="text-gray-600 mt-2">Ingresa tus credenciales para acceder al panel</p>
-            </div>
-            
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Usuario</label>
-                <input
-                  type="text"
-                  value={loginData.username}
-                  onChange={(e) => setLoginData({...loginData, username: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0e368d] focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
-                <input
-                  type="password"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0e368d] focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsLoginOpen(false)}
-                  className="flex-1 py-3 text-gray-700 bg-gray-100 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-gradient-to-r from-[#0e368d] to-[#942ace] text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-                >
-                  Ingresar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Solicitud de Plan */}
-      {showPlanModal && selectedPlan && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Solicitar Plan {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
-              </h2>
-              <p className="text-gray-600 mt-2">
-                Completa el formulario y nos pondremos en contacto contigo
-              </p>
-            </div>
-            
-            <form onSubmit={handlePlanSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre Completo *</label>
-                  <input
-                    type="text"
-                    value={planForm.name}
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+      />
                     onChange={(e) => setPlanForm({...planForm, name: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0e368d] focus:border-transparent transition-all"
                     required
